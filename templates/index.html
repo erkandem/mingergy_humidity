@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Input</title>
+</head>
+<body>
+    <h1>Humidity Simulation</h1>
+    <form id="simulation-form">
+        <label>Room Volume (m³): <input type="number" name="room_volume" value="220" required></label><br>
+        <label>Air Exchange Rate (m³/h): <input type="number" name="air_exchange_rate" value="70" required></label><br>
+        <label>Outside Temperature (°C): <input type="number" name="outside_temp" value="6" required></label><br>
+        <label>Outside Relative Humidity (%): <input type="number" name="outside_rh" value="57" required></label><br>
+        <label>Inside Temperature (°C): <input type="number" name="inside_temp" value="21" required></label><br>
+        <label>Initial Inside Relative Humidity (%): <input type="number" name="initial_inside_rh" value="22" required></label><br>
+        <label>Initial Vaporization Rate (g/h): <input type="number" name="initial_vaporization_rate" value="250" required></label><br>
+        <label>Total Duration (hours): <input type="number" name="total_duration" value="24" required></label><br>
+        <label>Interval (minutes): <input type="number" name="interval_minutes" value="15" required></label><br>
+        <button type="submit">Run Simulation</button>
+    </form>
+
+    <script>
+        document.getElementById('simulation-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            // Gather form data
+            const formData = new FormData(event.target);
+            const payload = Object.fromEntries(formData.entries());
+            for (let key in payload) {
+                payload[key] = parseFloat(payload[key]); // Convert values to numbers
+            }
+
+            try {
+                // Make fetch request to the /simulate endpoint
+                const response = await fetch('/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Simulation Results:", data);
+                    alert("Simulation completed! Check the console for results.");
+                } else {
+                    const error = await response.json();
+                    console.error("Error:", error);
+                    alert(`Simulation failed: ${error.error}`);
+                }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                alert("An error occurred while running the simulation.");
+            }
+        });
+    </script>
+</body>
+</html>
