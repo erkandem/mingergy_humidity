@@ -23,6 +23,25 @@ def calculate_absolute_humidity(temperature_celsius, relative_humidity):
 
 
 # Simulate Humidity Dynamics in Fixed Intervals
+# Function to calculate dynamic vaporization rate
+def calculate_vaporization_rate(initial_rate, current_relative_humidity):
+    """
+    Calculate the current vaporization rate based on the current relative humidity.
+    Vaporization rate decreases linearly as RH approaches 100%.
+
+    Parameters:
+    - initial_rate: Initial vaporization rate in g/h.
+    - current_relative_humidity: Current indoor relative humidity in %.
+
+    Returns:
+    - Adjusted vaporization rate in g/h.
+    """
+    if current_relative_humidity >= 100:
+        return 0  # Vaporization stops at 100% RH
+    return initial_rate * (1 - current_relative_humidity / 100)
+
+
+# Modified simulate_fixed_intervals function to use dynamic vaporization rate
 def simulate_fixed_intervals(
     room_volume,
     air_exchange_rate,
@@ -30,7 +49,7 @@ def simulate_fixed_intervals(
     outside_rh,
     inside_temp,
     initial_inside_rh,
-    vaporization_rate,
+    initial_vaporization_rate,
     total_duration,
     interval_minutes
 ):
@@ -42,6 +61,14 @@ def simulate_fixed_intervals(
 
     for step in range(iterations):
         time = step * interval_hours
+
+        # Calculate current relative humidity
+        current_relative_humidity = (current_inside_abs_humidity /
+                                     calculate_absolute_humidity(inside_temp, 100)) * 100
+
+        # Adjust vaporization rate based on current relative humidity
+        vaporization_rate = calculate_vaporization_rate(initial_vaporization_rate, current_relative_humidity)
+        # Calculate air exchange loss and net humidity change
         air_exchange_loss = (current_inside_abs_humidity - outside_abs_humidity) * air_exchange_rate * interval_hours
         net_humidity_change = (vaporization_rate * interval_hours) - air_exchange_loss
         current_inside_abs_humidity += net_humidity_change / room_volume
@@ -53,11 +80,11 @@ def simulate_fixed_intervals(
             'air_exchange_loss': air_exchange_loss,
             'humidity_added': vaporization_rate * interval_hours,
             'humidity_balance': (vaporization_rate * interval_hours) - air_exchange_loss,
-            'current_relative_humidity': (current_inside_abs_humidity /
-                calculate_absolute_humidity(inside_temp, 100)) * 100
+            'current_relative_humidity': current_relative_humidity
         })
 
     return pd.DataFrame(results)
+
 
 # Visualize Results
 def plot_humidity_dynamics(data):
@@ -86,7 +113,7 @@ if __name__ == "__main__":
     ROOM_VOLUME = 220  # [m³]
     AIR_EXCHANGE_RATE = 70  # [m³/h]
     OUTSIDE_TEMPERATURE = 6  # [°C]
-    OUTSIDE_RELATIVE_HUMIDITY = 90  # [%]
+    OUTSIDE_RELATIVE_HUMIDITY = 57  # [%]
     INSIDE_TEMPERATURE = 21  # [°C]
     INITIAL_INSIDE_RELATIVE_HUMIDITY = 22  # [%]
     VAPORIZATION_RATE = 250  # [g/h]
