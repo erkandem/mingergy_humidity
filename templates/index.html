@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulation Input</title>
+    <title>Humidity Simulation</title>
+    <!-- Plotly CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
 </head>
 <body>
     <h1>Humidity Simulation</h1>
@@ -19,6 +21,8 @@
         <label>Interval (minutes): <input type="number" name="interval_minutes" value="15" required></label><br>
         <button type="submit">Run Simulation</button>
     </form>
+
+    <div id="plot" style="width:100%;max-width:900px;height:500px;"></div>
 
     <script>
         document.getElementById('simulation-form').addEventListener('submit', async function(event) {
@@ -42,11 +46,56 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log("Simulation Results:", data);
-                    alert("Simulation completed! Check the console for results.");
+
+                    // Extract columns for Plotly
+                    const columns = data.columns;
+
+                    // Prepare traces for Plotly
+                    const traces = [
+                        {
+                            x: columns.time,
+                            y: columns.current_relative_humidity,
+                            mode: 'lines',
+                            name: 'Relative Humidity (%)',
+                            yaxis: 'y'
+                        },
+                        {
+                            x: columns.time,
+                            y: columns.humidity_added,
+                            mode: 'lines',
+                            name: 'Humidity Added (g)',
+                            yaxis: 'y2'
+                        },
+                        {
+                            x: columns.time,
+                            y: columns.air_exchange_loss,
+                            mode: 'lines',
+                            name: 'Air Exchange Loss (g)',
+                            yaxis: 'y2'
+                        },
+                        {
+                            x: columns.time,
+                            y: columns.humidity_balance,
+                            mode: 'lines',
+                            name: 'Humidity Balance (g)',
+                            yaxis: 'y2'
+                        }
+                    ];
+                    console.log(JSON.stringify(traces))
+                    // Plot with Plotly
+                    Plotly.newPlot('plot', traces, {
+                        title: 'Humidity Simulation Results',
+                        xaxis: { title: 'Time (hours)' },
+                        yaxis: { title: 'Relative Humidity (%)', side: 'left', range: [0, 100] },
+                        yaxis2: {
+                            title: 'Mass Flows (g)',
+                            overlaying: 'y',
+                            side: 'right'
+                        }
+                    });
                 } else {
                     const error = await response.json();
                     console.error("Error:", error);
-                    alert(`Simulation failed: ${error.error}`);
                 }
             } catch (err) {
                 console.error("Fetch Error:", err);
@@ -54,5 +103,33 @@
             }
         });
     </script>
+<script>
+    const sampleData = [{
+        "x": [0, 1, 2, 3, 4],
+        "y": [22, 27.045210289104, 30.171277416926994, 32.10822258425936, 33.30837486117637],
+        "mode": "lines",
+        "name": "Relative Humidity (%)",
+        "yaxis": "y"
+    }, {
+        "x": [0, 1, 2, 3, 4],
+        "y": [195, 182.38697427724, 174.5718064576825, 169.7294435393516, 166.72906284705908],
+        "mode": "lines",
+        "name": "Humidity Added (g)",
+        "yaxis": "y2"
+    }, {
+        "x": [0, 1, 2, 3, 4],
+        "y": [-7.757923510864373, 56.75596124259248, 96.72946538998032, 121.49748300243103, 136.8440159005421],
+        "mode": "lines",
+        "name": "Air Exchange Loss (g)",
+        "yaxis": "y2"
+    }, {
+        "x": [0, 1, 2, 3, 4],
+        "y": [202.75792351086437, 125.63101303464752, 77.84234106770218, 48.23196053692057, 29.88504694651698],
+        "mode": "lines",
+        "name": "Humidity Balance (g)",
+        "yaxis": "y2"
+    }];
+
+</script>
 </body>
 </html>

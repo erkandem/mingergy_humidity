@@ -38,7 +38,8 @@ def calculate_vaporization_rate(initial_rate, current_relative_humidity):
     """
     if current_relative_humidity >= 100:
         return 0  # Vaporization stops at 100% RH
-    return initial_rate * (1 - current_relative_humidity / 100)
+    current_rate = initial_rate * (1 - current_relative_humidity / 100)
+    return current_rate
 
 
 # Modified simulate_fixed_intervals function to use dynamic vaporization rate
