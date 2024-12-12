@@ -1,14 +1,17 @@
 from flask import Flask, request, jsonify, render_template
-import pandas as pd
-from humidity import simulate_fixed_intervals
+from lib import simulate_fixed_intervals
 
 app = Flask(__name__)
+
+
 @app.route('/')
 def index():
     """
     Serve the index page with the input form.
     """
     return render_template('index.html')
+
+
 @app.route('/simulate', methods=['POST'])
 def simulate():
     """
@@ -46,9 +49,6 @@ def simulate():
             interval_minutes
         )
 
-        # Convert DataFrame to a dictionary of columns
-        results = {column: simulation_results[column].tolist() for column in simulation_results.columns}
-
         # Unit annotations
         units = {
             "time": "hours",
@@ -61,7 +61,7 @@ def simulate():
         }
 
         # Return results with units
-        return jsonify({'columns': results, 'units': units}), 200
+        return jsonify({'columns': simulation_results, 'units': units}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400

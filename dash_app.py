@@ -1,12 +1,20 @@
+import logging
+import time
+import plotly.graph_objects as go
+
 import dash
 from dash import dcc, html, Input, Output
-import pandas as pd
-import plotly.express as px
-from humidity import simulate_fixed_intervals
+from lib import simulate_fixed_intervals
 
 app = dash.Dash(__name__)
 app.title = "Humidity Simulator"
 server = app.server
+if __name__ != '__main__':
+    # quick and not that dirty
+    # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
 
 app.layout = html.Div(
     [
@@ -72,7 +80,7 @@ def update_plot(
     total_duration,
     interval_minutes,
 ):
-
+    start = time.time()
     results = simulate_fixed_intervals(
         room_volume=room_volume,
         air_exchange_rate=air_exchange_rate,
@@ -84,19 +92,25 @@ def update_plot(
         total_duration=total_duration,
         interval_minutes=interval_minutes,
     )
+    app.logger.info("Time elapsed: %s seconds", time.time() - start)
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=results["time"],
+            y=results["current_relative_humidity"],
+            mode="lines",
+            name="Relative Humidity (%)",
+            line=dict(color="blue"),
+        )
+    )
 
-    # Create a DataFrame and plot
-    df = pd.DataFrame(results)
-    fig = px.line(
-        df,
-        x="time",
-        y="current_relative_humidity",
+    fig.update_layout(
         title="Relative Humidity Over Time",
+        xaxis_title="Time (hours)",
+        yaxis_title="Relative Humidity (%)",
+        yaxis=dict(range=[0, 100]),
     )
-    fig.update_yaxes(
-        range=[0, 100],
-        title="Relative Humidity (%)",
-    )
+
     return fig
 
 

@@ -1,0 +1,26 @@
+# print a list of the disk size of each package
+FROM python:3.12-alpine
+
+# Install du and sort utilities
+RUN apk add --no-cache bash coreutils
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements
+COPY reqs_dash_app.txt ./requirements.txt
+
+# Create analysis script
+RUN echo '#!/bin/bash' > /analyze_packages.sh && \
+    echo 'pip install --no-cache-dir setuptools wheel' >> /analyze_packages.sh && \
+    echo 'pip install --no-cache-dir -r requirements.txt' >> /analyze_packages.sh && \
+    echo 'echo "Package Sizes:"' >> /analyze_packages.sh && \
+    echo 'for pkg in $(pip list | tail -n +3 | awk "{print \$1}"); do' >> /analyze_packages.sh && \
+    echo '  pkg_path=$(pip show $pkg | grep "Location:" | cut -d" " -f2)' >> /analyze_packages.sh && \
+    echo '  pkg_size=$(du -sh "$pkg_path/$pkg" 2>/dev/null)' >> /analyze_packages.sh && \
+    echo '  echo "$pkg: $pkg_size"' >> /analyze_packages.sh && \
+    echo 'done | sort -hr' >> /analyze_packages.sh && \
+    chmod +x /analyze_packages.sh
+
+# Set entrypoint to run the analysis script
+ENTRYPOINT ["/bin/bash", "/analyze_packages.sh"]
