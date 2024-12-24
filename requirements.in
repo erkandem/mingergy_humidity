@@ -1,2 +1,10 @@
+# core
 dash
+
+# deployment
 gunicorn
+
+# TODO: latter part could be split of into a "local" part to keep a slim
+#       docker image
+# versioning
+bump-my-version
