@@ -2,8 +2,8 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   build-and-push:
@@ -20,10 +20,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Version from VERSION File
+      - name: Extract Version from Tag
         id: version
         run: |
-          VERSION=$(cat VERSION)
+          VERSION=${GITHUB_REF#refs/tags/}
           echo "VERSION_TAG=$VERSION" >> $GITHUB_ENV
 
       - name: Generate Short SHA
