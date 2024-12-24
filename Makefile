@@ -13,3 +13,6 @@ dev:
 
 prod:
 	gunicorn dash_app:server --workers 4 --bind 0.0.0.0:8050
+
+patch:
+	bump-my-version bump patch
