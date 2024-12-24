@@ -1,0 +1,6 @@
+# to be used on remote server, not for dev
+services:
+  web:
+    image: ghcr.io/erkandem/erkandem/mingergy_humidity:latest
+    ports:
+      - "8050:8050"

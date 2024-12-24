@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir setuptools wheel &&  \
 COPY lib ./lib
 COPY dash_app.py .
 EXPOSE 8050
-CMD ["gunicorn", "dash_app:server", "--workers", "4", "--bind", "0.0.0.0:8050"]
+CMD ["gunicorn", "dash_app:server", "--workers", "4", "--bind", "[::]:8050"]
